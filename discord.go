@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
@@ -57,13 +56,27 @@ func DiscordHandler() {
 		return
 	}
 
+	dg.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		if i.Type == discordgo.InteractionApplicationCommand {
+		switch i.ApplicationCommandData().Name {
+		case "hello":
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "HELLO",
+				},
+			})
+		}
+	}
+	})
+
 	dg.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		SendMessages(s, m)
 	})
-
-	dg.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		SlashCommandCreate(s, i)
-	})
+	cmd, err := s.ApplicationCommandCreate(dg.State.User.ID, *GuildID, v)
+	if err != nil {
+		log.Panicf("Cannot create '%v' command: %v", v.Name, err)
+	}
 
 	dg.Identify.Intents = discordgo.IntentsAllWithoutPrivileged
 
@@ -105,13 +118,12 @@ func SendMessages(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if strings.HasPrefix(m.Content, "/") {
-		strings.TrimPrefix(m.Content, "/")
-            s.ChannelMessageSend(m.ChannelID, movie.OriginalTitle)
-	}
+	s.ChannelMessageSend(m.ChannelID, movie.OriginalTitle)
 }
 
 func SlashCommandCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
+
+	fmt.Println("HELLo")
 	if i.Type == discordgo.InteractionApplicationCommand {
 		switch i.ApplicationCommandData().Name {
 		case "hello":
