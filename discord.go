@@ -3,52 +3,27 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"flag"
+
 	"github.com/bwmarrin/discordgo"
 )
 
-var base string = "https://api.themoviedb.org/3"
+var s *discordgo.Session
 
-type Data struct {
-	Adult               bool        `json:"adult"`
-	BackdropPath        string      `json:"backdrop_path"`
-	BelongsToCollection interface{} `json:"belongs_to_collection"`
-	Budget              int         `json:"budget"`
-	Genres              []struct {
-		ID   int    `json:"id"`
-		Name string `json:"name"`
-	} `json:"genres"`
-	Homepage            string        `json:"homepage"`
-	ID                  int           `json:"id"`
-	ImdbID              interface{}   `json:"imdb_id"`
-	OriginalLanguage    string        `json:"original_language"`
-	OriginalTitle       string        `json:"original_title"`
-	Overview            string        `json:"overview"`
-	Popularity          float64       `json:"popularity"`
-	PosterPath          string        `json:"poster_path"`
-	ProductionCompanies []interface{} `json:"production_companies"`
-	ProductionCountries []interface{} `json:"production_countries"`
-	ReleaseDate         string        `json:"release_date"`
-	Revenue             int           `json:"revenue"`
-	Runtime             int           `json:"runtime"`
-	SpokenLanguages     []struct {
-		EnglishName string `json:"english_name"`
-		Iso6391     string `json:"iso_639_1"`
-		Name        string `json:"name"`
-	} `json:"spoken_languages"`
-	Status      string  `json:"status"`
-	Tagline     string  `json:"tagline"`
-	Title       string  `json:"title"`
-	Video       bool    `json:"video"`
-	VoteAverage float64 `json:"vote_average"`
-	VoteCount   int     `json:"vote_count"`
-}
+var (
+	base string = "https://api.themoviedb.org/3"
+)
+
+var GuildID = flag.String("guild", "", "Test guild ID. If not passed - bot registers commands globally")
+
+func init() { flag.Parse() }
 
 func DiscordHandler() {
-
 	dg, err := discordgo.New("Bot " + DISCORD)
 
 	if err != nil {
@@ -56,27 +31,42 @@ func DiscordHandler() {
 		return
 	}
 
-	dg.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if i.Type == discordgo.InteractionApplicationCommand {
-		switch i.ApplicationCommandData().Name {
-		case "hello":
+	commands := []*discordgo.ApplicationCommand{
+		{
+			Name:        "basic-command",
+			Description: "Basic command",
+		},
+	}
+
+	commandHandlers := map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+		"basic-command": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content: "HELLO",
+					Content: "Hey there! Congratulations, you just executed your first slash command",
 				},
 			})
-		}
+		},
 	}
+
+	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		if h, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
+			h(s, i)
+		}
 	})
+
+	registeredCommands := make([]*discordgo.ApplicationCommand, len(commands))
+	for i, v := range commands {
+		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, *GuildID, v)
+		if err != nil {
+			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
+		}
+		registeredCommands[i] = cmd
+	}
 
 	dg.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		SendMessages(s, m)
 	})
-	cmd, err := s.ApplicationCommandCreate(dg.State.User.ID, *GuildID, v)
-	if err != nil {
-		log.Panicf("Cannot create '%v' command: %v", v.Name, err)
-	}
 
 	dg.Identify.Intents = discordgo.IntentsAllWithoutPrivileged
 
@@ -99,9 +89,10 @@ func DiscordHandler() {
 
 func SendMessages(s *discordgo.Session, m *discordgo.MessageCreate) {
 
+	//var u string
 	//tv/21212?language=en-US' \
-	searc := base + "/movie/1219926?language=en-US"
-	data := SendRequest(searc, TMDB)
+	urlurl := base + "/movie/1219926?language=en-US"
+	data := SendRequest(urlurl, TMDB)
 
 	var movie Data
 
@@ -123,16 +114,4 @@ func SendMessages(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 func SlashCommandCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
-	fmt.Println("HELLo")
-	if i.Type == discordgo.InteractionApplicationCommand {
-		switch i.ApplicationCommandData().Name {
-		case "hello":
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "HELLO",
-				},
-			})
-		}
-	}
 }
