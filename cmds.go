@@ -9,7 +9,7 @@ import (
 
 var base string = "https://api.themoviedb.org/3"
 
-func Format(data Data, cat string) string {
+func Format(data Data) string {
 
 	str := `## %s
     %s
@@ -19,7 +19,7 @@ func Format(data Data, cat string) string {
 %s
 `
 
-	new_str := fmt.Sprintf(str, data.Title, data.Overview, data.ReleaseDate, data.OriginalLanguage, data.Genres[0].Name, base+cat+data.PosterPath)
+	new_str := fmt.Sprintf(str, data.Title, data.Overview, data.ReleaseDate, data.OriginalLanguage, data.Genres[0].Name, "https://image.tmdb.org/t/p/original/"+data.PosterPath)
 	return new_str
 
 }
@@ -99,7 +99,7 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: Format(movie, "/movie/"),
+				Content: Format(movie),
 			},
 		})
 	},
@@ -120,7 +120,7 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: Format(movie, "/tv/"),
+				Content: Format(movie),
 			},
 		})
 	},
@@ -141,7 +141,7 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: Format(movie, "/anime/"),
+				Content: Format(movie),
 			},
 		})
 	},
@@ -162,7 +162,7 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: Format(movie, "/bollywood/"),
+				Content: Format(movie),
 			},
 		})
 	},

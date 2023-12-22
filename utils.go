@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,7 +10,6 @@ import (
 func SendRequest(url string, token string) string {
 	
     client := &http.Client{}
-    fmt.Println(url)
 
 	request, err := http.NewRequest("GET", url, nil)
 
@@ -37,33 +34,3 @@ func SendRequest(url string, token string) string {
 
 	return string(body)
 }
-
-func MapToJSONString(inputMap map[string]interface{}) (string, error) {
-	jsonBytes, err := json.Marshal(inputMap)
-
-	if err != nil {
-		return "", err
-	}
-	return string(jsonBytes), nil
-}
-
-
-/*
-func Parser(body string) string {
-
-	var response Response
-
-	err := json.Unmarshal([]byte(body), &response)
-
-	if err != nil {
-		fmt.Println("Error parsing JSON:", err)
-	}
-
-	if len(response.Choices) > 0 {
-		content := response.Choices[0].Message.Content
-		return content
-	}
-
-	return ""
-}
-*/

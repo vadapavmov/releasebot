@@ -32,8 +32,8 @@ func init() {
 
 	DISCORD = os.Getenv("DISCORD_TOKEN")
 	TMDB = os.Getenv("TOKEN")
-
 	KEY = os.Getenv("KEY")
+
 	s, err = discordgo.New("Bot " + DISCORD)
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
@@ -77,7 +77,7 @@ func main() {
 	signal.Notify(stop, os.Interrupt)
 	log.Println("Press Ctrl+C to exit")
 	<-stop
-	/*
+	
 		if true {
 			log.Println("Removing commands...")
 			for _, v := range registeredCommands {
@@ -87,6 +87,5 @@ func main() {
 				}
 			}
 		}
-	*/
 
 }
