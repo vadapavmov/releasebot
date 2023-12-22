@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 func SendRequest(url string, token string) string {
 	
     client := &http.Client{}
+    fmt.Println(url)
 
 	request, err := http.NewRequest("GET", url, nil)
 
