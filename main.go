@@ -78,14 +78,4 @@ func main() {
 	log.Println("Press Ctrl+C to exit")
 	<-stop
 	
-		if true {
-			log.Println("Removing commands...")
-			for _, v := range registeredCommands {
-				err := s.ApplicationCommandDelete(s.State.User.ID, "1184494963241779240", v.ID)
-				if err != nil {
-					log.Panicf("Cannot delete '%v' command: %v", v.Name, err)
-				}
-			}
-		}
-
 }
