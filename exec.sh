@@ -1,3 +1,3 @@
 #!/bin/zsh
 
-go run main.go structs.go  cmds.go utils.go
+go run main.go structs.go image.go cmds.go utils.go

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"hash/adler32"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -12,14 +14,15 @@ var base string = "https://api.themoviedb.org/3"
 func Format(data Data) string {
 
 	str := `## %s
-    %s
+%s
 - **Year**: %s
 - **Language**: %s
-- **Genres**: # %s
-%s
+- **Genres**: #%s
 `
 
-	new_str := fmt.Sprintf(str, data.Title, data.Overview, data.ReleaseDate, data.OriginalLanguage, data.Genres[0].Name, "https://image.tmdb.org/t/p/original/"+data.PosterPath)
+	//new_str := fmt.Sprintf(str, data.Title, data.Overview, data.ReleaseDate, data.OriginalLanguage, data.Genres[0].Name, "https://image.tmdb.org/t/p/original/"+data.PosterPath)
+
+	new_str := fmt.Sprintf(str, data.Title, data.Overview, data.ReleaseDate, data.OriginalLanguage, data.Genres[0].Name)
 	return new_str
 
 }
@@ -91,7 +94,15 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 
 		var movie Data
 
-		err := json.Unmarshal([]byte(data), &movie)
+		pic := "https://image.tmdb.org/t/p/original/" + movie.PosterPath
+		b, err := DownloadImage(pic)
+
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
+
+		err = json.Unmarshal([]byte(data), &movie)
+
 		if err != nil {
 			fmt.Println("Error:", err)
 		}
@@ -100,9 +111,18 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: Format(movie),
+
+				Files: []*discordgo.File{
+					{
+						ContentType: "image/jpeg",
+						Name:        "pic.jpeg",
+						Reader:      bytes.NewReader(b),
+					},
+				},
 			},
 		})
 	},
+
 	"release-tv": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		options := i.ApplicationCommandData().Options
 		var t string = options[0].StringValue()
@@ -145,6 +165,7 @@ var commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 			},
 		})
 	},
+
 	"release-bolly": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		options := i.ApplicationCommandData().Options
 		var t string = options[0].StringValue()
