@@ -1,0 +1,18 @@
+RELEASE BOT
+===========
+Simple discord bot to provide tmdb movie or tv show information in discord channel
+
+Requirements
+------------
+- TMDB API Key
+- Discord bot token
+- Guild Id (optional)
+
+USAGE
+-----
+- Get Latest binary and .env.sample from release page of this repo
+- Prepare .env with required options
+- Linux/mac command - ./releasebot
+- Windows command - releasebot
+- Linux/mac command without .env - ./releasebot -api_key your_tmdb_api_key -token your_discord_bot_token -guild your_discord_guild_id
+- Windows command without .env - releasebot -api_key your_tmdb_api_key -token your_discord_bot_token -guild your_discord_guild_id
