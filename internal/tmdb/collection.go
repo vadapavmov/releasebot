@@ -8,38 +8,20 @@ import (
 )
 
 type Collection struct {
-	ID               int    `json:"id"`
-	Title            string `json:"title"`
-	OriginalName     string `json:"original_name"`
-	OriginalTitle    string `json:"original_title"`
-	OriginalLanguage string `json:"original_language"`
-	Overview         string `json:"overview"`
-	PosterPath       string `json:"poster_path"`
-	ReleaseDate      string `json:"release_date"`
-	FirstAirDate     string `json:"first_air_date"`
+	ID               int     `json:"id"`
+	Title            string  `json:"title"`
+	OriginalName     string  `json:"original_name"`
+	OriginalTitle    string  `json:"original_title"`
+	OriginalLanguage string  `json:"original_language"`
+	Overview         string  `json:"overview"`
+	PosterPath       string  `json:"poster_path"`
+	ReleaseDate      string  `json:"release_date"`
+	FirstAirDate     string  `json:"first_air_date"`
+	VoteAverage      float64 `json:"vote_average"`
 	Genres           []struct {
 		ID   int    `json:"id"`
 		Name string `json:"name"`
 	} `json:"genres"`
-}
-
-func (c *Collection) Poster() (io.Reader, error) {
-	resp, err := http.Get(posterBase + c.PosterPath)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("tmdb poster api error: expected status code %d, recevied error code %d", http.StatusOK, resp.StatusCode)
-	}
-	return resp.Body, nil
-}
-
-func (c *Collection) GenreStr() string {
-	genres := ""
-	for _, genre := range c.Genres {
-		genres += "#" + genre.Name
-	}
-	return genres
 }
 
 func (c *Collection) Name() string {
@@ -57,6 +39,10 @@ func (c *Collection) Description() string {
 	return c.Overview
 }
 
+func (c *Collection) Star() string {
+	return fmt.Sprintf("%.1f/10 (TMDB)", c.VoteAverage)
+}
+
 func (c *Collection) Language() string {
 	return c.OriginalLanguage
 }
@@ -66,6 +52,25 @@ func (c *Collection) ReleaseTime() string {
 		return c.ReleaseDate
 	}
 	return c.FirstAirDate
+}
+
+func (c *Collection) GenreStr() string {
+	genres := ""
+	for _, genre := range c.Genres {
+		genres += "#" + genre.Name
+	}
+	return genres
+}
+
+func (c *Collection) Poster() (io.Reader, error) {
+	resp, err := http.Get(posterBase + c.PosterPath)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("tmdb poster api error: expected status code %d, recevied error code %d", http.StatusOK, resp.StatusCode)
+	}
+	return resp.Body, nil
 }
 
 func (c *Collection) unmarshal(data []byte) error {

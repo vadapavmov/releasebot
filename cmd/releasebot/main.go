@@ -10,6 +10,8 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/vadapavmov/releasebot/internal/bot"
+	"github.com/vadapavmov/releasebot/internal/imdb"
+	"github.com/vadapavmov/releasebot/internal/structs"
 	"github.com/vadapavmov/releasebot/internal/tmdb"
 )
 
@@ -18,7 +20,8 @@ func main() {
 	_ = godotenv.Load()
 
 	// Define flags
-	apiKey := flag.String("api_key", os.Getenv("API_KEY"), "TMDB API Key")
+	apiKey := flag.String("tmdb-api-key", os.Getenv("TMDB_API_KEY"), "TMDB API Key")
+	endpoint := flag.String("imdb-api-endpoint", os.Getenv("IMDB_API_ENDPOINT"), "IMDB API Endpoint")
 	token := flag.String("token", os.Getenv("TOKEN"), "Discord Bot Token")
 	guild := flag.String("guild", os.Getenv("GUILD"), "Discord Guild ID")
 
@@ -29,15 +32,26 @@ func main() {
 	zl.SetGlobalLevel(zl.InfoLevel)
 
 	// Validate required parameters
-	if *apiKey == "" || *token == "" {
-		log.Fatal().Msg("API_KEY or TOKEN are missing")
+	if *apiKey == "" && *endpoint == "" {
+		log.Fatal().Msg("one of TMDB_API_KEY or IMDB_API_ENDPOINT must be provided")
+	}
+	if *token == "" {
+		log.Fatal().Msg("discord token missing")
 	}
 
-	// Initialize TMDB client
-	tmdbClient := tmdb.New(*apiKey)
+	// Initialize search engine
+	var engine structs.SearchEngine
+	if *endpoint != "" {
+		engine = imdb.New(*endpoint)
+		log.Info().Msg("initialized IMDB as data source")
+	}
+	if engine == nil && *apiKey != "" {
+		engine = tmdb.New(*apiKey)
+		log.Info().Msg("initialized TMDB as data source")
+	}
 
 	// Initialize Discord bot
-	session := bot.New(*token, *guild, tmdbClient)
+	session := bot.New(*token, *guild, engine)
 
 	// Start the bot
 	err := session.Open()

@@ -7,11 +7,11 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/rs/zerolog/log"
 
-	"github.com/vadapavmov/releasebot/internal/tmdb"
+	"github.com/vadapavmov/releasebot/internal/structs"
 )
 
 // New creates a new discord session with the given token and tmdb client
-func New(token, guildID string, c *tmdb.Client) *discordgo.Session {
+func New(token, guildID string, c structs.SearchEngine) *discordgo.Session {
 	s, err := discordgo.New("Bot " + token)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create discord session")
@@ -69,7 +69,7 @@ func registerCommands(s *discordgo.Session, guildID string) {
 }
 
 // makeInteractionHandler creates a handler function for Discord interactions
-func makeInteractionHandler(c *tmdb.Client) func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func makeInteractionHandler(c structs.SearchEngine) func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	return func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if i.Type != discordgo.InteractionApplicationCommand {
 			return
@@ -83,9 +83,9 @@ func makeInteractionHandler(c *tmdb.Client) func(s *discordgo.Session, i *discor
 }
 
 // handleRelease handles both movie and TV release commands
-func handleRelease(c *tmdb.Client, s *discordgo.Session, i *discordgo.InteractionCreate, commandType string) {
+func handleRelease(c structs.SearchEngine, s *discordgo.Session, i *discordgo.InteractionCreate, commandType string) {
 	id := i.ApplicationCommandData().Options[0].StringValue()
-	var collection *tmdb.Collection
+	var collection structs.Collection
 	var err error
 
 	// Immediately acknowledge the interaction
@@ -128,24 +128,24 @@ func handleRelease(c *tmdb.Client, s *discordgo.Session, i *discordgo.Interactio
 
 // sendErrorReply sends an error reply to a Discord interaction
 func sendErrorReply(s *discordgo.Session, i *discordgo.Interaction, err error) {
-	if err := s.InteractionRespond(i, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: ">**failed to execute command**\n" + err.Error(),
-		},
+	errMsg := ">**failed to execute command**\n" + err.Error()
+	if _, err = s.InteractionResponseEdit(i, &discordgo.WebhookEdit{
+		Content: &errMsg,
 	}); err != nil {
 		log.Warn().Err(err).Msg("failed to send error reply")
 	}
 }
 
 // Format formats the tmdb collection data for display
-func Format(c *tmdb.Collection) string {
+func Format(c structs.Collection) string {
 	str := []string{
 		"## %s",
 		"%s",
-		"- **Genres:** %s",
-		"- **Language:** %s",
-		"- **Release Date:** %s",
+		"",
+		"- 🎭 **Genres:**  %s",
+		"- 🗣 **Language:**  %s",
+		"- 📅 **Release Date:**  %s",
+		"- ⭐ **Rating:**  %s",
 	}
-	return fmt.Sprintf(strings.Join(str, "\n"), c.Name(), c.Description(), c.GenreStr(), c.Language(), c.ReleaseTime())
+	return fmt.Sprintf(strings.Join(str, "\n"), c.Name(), c.Description(), c.GenreStr(), c.Language(), c.ReleaseTime(), c.Star())
 }
