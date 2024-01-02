@@ -29,9 +29,9 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
-          project_path: "./cmd/ddrv"
-          binary_name: "ddrv"
+          project_path: "./cmd/releasebot"
+          binary_name: "releasebot"
           compress_assets: "OFF"
           md5sum: false
           ldflags: "-s -w"
-          asset_name: "ddrv-${{ matrix.goos }}-${{ matrix.goarch }}"
+          asset_name: "releasebot-${{ matrix.goos }}-${{ matrix.goarch }}"
